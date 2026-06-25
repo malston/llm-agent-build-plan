@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Deep-Build Plan — LLM Apps &amp; Agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  html, body { margin:0; padding:0; background:#f3f6f8; }
+  * { box-sizing:border-box; }
+  ::selection { background:#cfe0ee; }
+
+  body {
+    background:#f3f6f8;
+    min-height:100vh;
+    font-family:'IBM Plex Sans',sans-serif;
+    color:#20292f;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:80px;
+  }
+
+  /* Hover affordances (mirrors the design's style-hover rules) */
+  .shape-row { transition:background .15s; }
+  .shape-row:hover { background:#fafcfd; }
+  .phase-head { transition:background .15s; }
+  .phase-head:hover { background:#fafcfd; }
+  .check-row { transition:opacity .15s; }
+  .check-row:hover { opacity:.85; }
+  .deliv-box { transition:background .15s; }
+  .deliv-box:hover { background:#f1f6fa; }
+  .reset-link:hover { color:#9cc6e2 !important; }
+
+  @media (max-width:680px) {
+    .two-col { grid-template-columns:1fr !important; }
+    .two-col > div:first-child { border-right:none !important; border-bottom:1px solid #eef2f5; }
+    .header-inner { gap:24px !important; }
+    .rhythm-row { flex-wrap:wrap !important; gap:6px !important; }
+    .rhythm-row > div:nth-child(1),
+    .rhythm-row > div:nth-child(2) { width:auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var ACCENT = "#3f7cb0";
+  var STORE_KEY = "dbp_state_v1";
+  var CIRC = 213.628;           // 2πr, r = 34
+  var PHASE_IDS = ["p0", "p1", "p2", "p3", "p4"];
+  var DEFAULT_EXPANDED = "first"; // 'first' | 'all' | 'none'
+  var PERSIST = true;
+
+  // ---- Data ---------------------------------------------------------------
+  var DATA = [
+    {
+      id: "p0", code: "00", weeks: "Week 1", name: "Measure what you already have",
+      desc: "baseline + brutal honesty",
+      goal: "Establish the discipline immediately, on code that already exists, before building anything new.",
+      intro: "Take an agent you’ve already written and measure it before you touch it. Resist the urge to fix anything — the humbling baseline is the point.",
+      tasks: [
+        "Take an agent you’ve already written",
+        "Wrap it in a real eval harness — even a crude one",
+        "Define what “task completed” means for it",
+        "Assemble 20–30 real cases and measure",
+        "Resist the urge to fix anything yet"
+      ],
+      note: "",
+      deliverable: "An eval suite over an existing agent + a short writeup: “what I learned my agent actually does when I measured it instead of vibing it.”"
+    },
+    {
+      id: "p1", code: "01", weeks: "Weeks 2–4", name: "Evals as a first-class discipline",
+      desc: "measurement you build with",
+      goal: "Make measurement something you build with, not bolt on — TDD for nondeterministic systems.",
+      intro: "This is the biggest differentiator in the field and the thing most people skip. Build a proper, reusable eval framework you’ll lean on for the rest of the plan.",
+      tasks: [
+        "Golden datasets",
+        "LLM-as-judge with calibrated rubrics",
+        "Regression suites",
+        "Task-completion & tool-call-correctness metrics",
+        "Drift detection across model/prompt changes"
+      ],
+      note: "Consider building the harness in Go — most eval tooling is Python, so a clean Go harness is differentiated and plays to your strength.",
+      deliverable: "An open-sourced eval harness + a writeup on judging nondeterministic systems. The most portable thing you’ll make all quarter."
+    },
+    {
+      id: "p2", code: "02", weeks: "Weeks 5–8", name: "Build reliably, under measurement",
+      desc: "demo → dependable",
+      goal: "The leap from demo to dependable. Pick one genuinely ambitious agent and build it the hard way.",
+      intro: "Build the agent measured against your Phase 1 harness the whole time, with all the parts people skip. Instrument it like production infra.",
+      tasks: [
+        "Failure recovery and retries",
+        "Context & memory management",
+        "Cost & latency budgets",
+        "Graceful degradation",
+        "The judgment of when not to reach for an agent",
+        "Wire in observability — OpenTelemetry, Wavefront, Grafana"
+      ],
+      note: "Your observability depth is massive leverage almost no application-layer AI person has.",
+      deliverable: "A dependable agent + an observability dashboard showing its real behavior under load and cost + a writeup on the demo→dependable gap."
+    },
+    {
+      id: "p3", code: "03", weeks: "Weeks 9–11", name: "Go below the API",
+      desc: "one model-level project",
+      goal: "Close your one real gap. Make “when is customization worth it?” hands-on instead of theoretical.",
+      intro: "One fine-tune or distillation, end to end, on a narrow real task — then adjudicate it with your own harness. That loop is the most senior thing in the whole plan.",
+      tasks: [
+        "One fine-tune or distillation, end to end, on a narrow real task",
+        "Rent GPU rather than fighting the homelab for it",
+        "Compare fine-tuned small vs prompted large — cost, latency, quality",
+        "Adjudicate the comparison with your own Phase 1 harness"
+      ],
+      note: "Your eval framework adjudicating your model project — that is the senior move.",
+      deliverable: "The trained model + the comparison + a writeup: “when customization actually beats prompting, with numbers.”"
+    },
+    {
+      id: "p4", code: "04", weeks: "Week 12", name: "Synthesize + ship the narrative",
+      desc: "proof-of-work",
+      goal: "Pull it into one coherent story and a public artifact.",
+      intro: "You’re not writing a beginner’s “I learned LLMs” post — you’re showing rigor most practitioners can’t.",
+      tasks: [
+        "Consolidate the four writeups and repos",
+        "Build a single proof-of-work — a talk, a wiki section, or a linked collection",
+        "Answer: what does AI-engineering depth look like for a senior platform engineer?"
+      ],
+      note: "",
+      deliverable: "One public artifact you’d be comfortable sending to a hiring manager or a conference CFP."
+    }
+  ];
+
+  // ---- State --------------------------------------------------------------
+  var state = { done: {}, expanded: {} };
+
+  function initExpanded(mode) {
+    if (mode === "all") {
+      var o = {};
+      PHASE_IDS.forEach(function (i) { o[i] = true; });
+      return o;
+    }
+    if (mode === "none") return {};
+    return { p0: true };
+  }
+
+  function load() {
+    var saved = null;
+    if (PERSIST) {
+      try {
+        var raw = localStorage.getItem(STORE_KEY);
+        if (raw) saved = JSON.parse(raw);
+      } catch (e) {}
+    }
+    var exp = initExpanded(DEFAULT_EXPANDED);
+    if (saved) {
+      state.done = saved.done || {};
+      state.expanded = saved.expanded || exp;
+    } else {
+      state.expanded = exp;
+    }
+  }
+
+  function save() {
+    if (!PERSIST) return;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  // ---- Actions ------------------------------------------------------------
+  function toggleItem(id, e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    state.done[id] = !state.done[id];
+    save();
+    render();
+  }
+
+  function toggleExpand(pid) {
+    state.expanded[pid] = !state.expanded[pid];
+    save();
+    render();
+  }
+
+  function focusPhase(pid) {
+    state.expanded[pid] = true;
+    save();
+    render();
+    setTimeout(function () {
+      var el = document.getElementById("card-" + pid);
+      if (el) {
+        var y = el.getBoundingClientRect().top + window.pageYOffset - 16;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+    }, 70);
+  }
+
+  function resetProgress() {
+    state.done = {};
+    save();
+    render();
+  }
+
+  // ---- Derived values -----------------------------------------------------
+  function computeItem(id, label, isDeliv) {
+    var checked = !!state.done[id];
+    return {
+      id: id, label: label, checked: checked,
+      boxBg: checked ? ACCENT : "#ffffff",
+      boxBorder: checked ? ACCENT : "#c2ccd4",
+      checkColor: checked ? "#ffffff" : "transparent",
+      labelColor: checked ? "#9aa5b0" : (isDeliv ? "#20292f" : "#44515c")
+    };
+  }
+
+  function computeVals() {
+    var total = 0, done = 0, phasesComplete = 0;
+
+    var phases = DATA.map(function (p) {
+      var items = p.tasks.map(function (t, i) {
+        return computeItem(p.id + "-" + i, t, false);
+      });
+      var deliv = computeItem(p.id + "-deliv", p.deliverable, true);
+      var all = items.concat([deliv]);
+      var doneCount = all.filter(function (x) { return x.checked; }).length;
+      var tot = all.length;
+      var pct = Math.round((doneCount / tot) * 100);
+      var complete = pct === 100;
+      total += tot; done += doneCount;
+      if (complete) phasesComplete += 1;
+      return {
+        id: p.id, code: p.code, weeks: p.weeks, name: p.name, desc: p.desc,
+        goal: p.goal, intro: p.intro, note: p.note,
+        items: items, deliv: deliv,
+        doneCount: doneCount, total: tot, pct: pct,
+        barWidth: pct + "%",
+        pctLabel: pct + "%",
+        pctColor: complete ? ACCENT : "#97a4b0",
+        complete: complete,
+        expanded: !!state.expanded[p.id],
+        chevron: state.expanded[p.id] ? "▾" : "▸"
+      };
+    });
+
+    var gpct = total ? Math.round((done / total) * 100) : 0;
+    var ringOffset = CIRC * (1 - gpct / 100);
+
+    return {
+      phases: phases, gpct: gpct, done: done, total: total,
+      phasesComplete: phasesComplete, ringOffset: ringOffset
+    };
+  }
+
+  // ---- Helpers ------------------------------------------------------------
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function checkbox(it, extraMargin) {
+    return '<div style="width:20px; height:20px; border-radius:6px; flex:none; display:flex; align-items:center; justify-content:center; ' +
+      "font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; margin-top:1px;" +
+      "background:" + it.boxBg + "; border:1.5px solid " + it.boxBorder + "; color:" + it.checkColor + "; transition:all .15s;\">✓</div>";
+  }
+
+  // ---- Render -------------------------------------------------------------
+  function render() {
+    var v = computeVals();
+
+    var html = "";
+
+    // ===== Header =====
+    html += '<div style="background:#1b242d; color:#eaeff4; border-bottom:3px solid #3f7cb0;">';
+    html += '<div class="header-inner" style="max-width:980px; margin:0 auto; padding:46px 28px 42px; display:flex; flex-wrap:wrap; gap:36px; align-items:flex-end; justify-content:space-between;">';
+
+    html += '<div style="flex:1; min-width:300px;">';
+    html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:12px; letter-spacing:.22em; color:#6fa8d4; font-weight:500;">SENIOR TRACK · LLM APPS &amp; AGENTS</div>';
+    html += '<div style="font-family:\'IBM Plex Serif\',serif; font-size:46px; font-weight:600; line-height:1.04; margin:14px 0 0; letter-spacing:-0.01em;">The Deep-Build Plan</div>';
+    html += '<div style="font-size:15.5px; color:#aebccb; line-height:1.55; margin-top:16px; max-width:520px;">For an engineer who already ships agents and needs to go from <em style="font-style:italic; color:#d9e3ec;">works</em> to <em style="font-style:italic; color:#d9e3ec;">rigorously good</em>.</div>';
+    html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:12.5px; color:#7f909f; margin-top:10px; letter-spacing:.02em;">~12 weeks · modular · compress to 8 · stretch to 16</div>';
+    html += '</div>';
+
+    html += '<div style="display:flex; align-items:center; gap:22px; flex:none;">';
+    html += '<div style="position:relative; width:96px; height:96px;">';
+    html += '<svg width="96" height="96" viewBox="0 0 96 96">';
+    html += '<circle cx="48" cy="48" r="34" style="fill:none; stroke:#33414d; stroke-width:7;"></circle>';
+    html += '<circle cx="48" cy="48" r="34" style="fill:none; stroke:#6fa8d4; stroke-width:7; stroke-linecap:round; stroke-dasharray:213.628; stroke-dashoffset:' + v.ringOffset + '; transform:rotate(-90deg); transform-origin:48px 48px; transition:stroke-dashoffset .55s cubic-bezier(.4,0,.2,1);"></circle>';
+    html += '</svg>';
+    html += '<div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column;">';
+    html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:21px; font-weight:600; color:#eaeff4; line-height:1;">' + v.gpct + '<span style="font-size:12px; color:#8fa3b4;">%</span></div>';
+    html += '</div></div>';
+
+    html += '<div style="display:flex; flex-direction:column; gap:6px;">';
+    html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:13px; color:#cfdae4;">' + v.phasesComplete + '<span style="color:#7f909f;"> / 5 phases</span></div>';
+    html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:13px; color:#cfdae4;">' + v.done + '<span style="color:#7f909f;"> / ' + v.total + ' steps</span></div>';
+    html += '<div data-action="reset" class="reset-link" style="font-family:\'IBM Plex Mono\',monospace; font-size:11.5px; color:#6fa8d4; cursor:pointer; margin-top:4px; letter-spacing:.04em;">↺ reset progress</div>';
+    html += '</div></div>';
+
+    html += '</div></div>';
+
+    // ===== Body container =====
+    html += '<div style="max-width:980px; margin:0 auto; padding:0 28px;">';
+
+    // ----- How to read / The one move -----
+    html += '<div class="two-col" style="display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:46px; border:1px solid #e0e6ea; border-radius:14px; overflow:hidden; background:#fff;">';
+    html += '<div style="padding:30px 30px 30px; border-right:1px solid #eef2f5;">';
+    html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:11px; letter-spacing:.16em; color:#97a4b0; font-weight:600;">HOW TO READ THIS</div>';
+    html += '<div style="font-size:15px; color:#44515c; line-height:1.62; margin-top:14px;">This is not a curriculum. You don’t need to learn the domain — you need reps with feedback on the parts most people skip. Each phase ends in something shippable; the proof-of-work doubles as your pivot evidence.</div>';
+    html += '<div style="font-size:14.5px; color:#5a6772; line-height:1.6; margin-top:14px;">It is deliberately <em style="font-style:italic;">not</em> tutorial-following, cert-collecting, or re-learning fundamentals you’ve had for fifteen years. If a week feels like coursework, you’re off the rails.</div>';
+    html += '</div>';
+    html += '<div style="padding:30px; background:#f7fafc; display:flex; flex-direction:column; justify-content:center;">';
+    html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:11px; letter-spacing:.16em; color:#3f7cb0; font-weight:600;">THE ONE MOVE</div>';
+    html += '<div style="font-family:\'IBM Plex Serif\',serif; font-size:21px; line-height:1.42; color:#20292f; margin-top:14px; font-weight:500;">Make everything <span style="color:#3f7cb0;">measurable</span> first, then build hard things <span style="color:#3f7cb0;">under measurement</span>, then go <span style="color:#3f7cb0;">below the API</span>.</div>';
+    html += '</div></div>';
+
+    // ----- The shape -----
+    html += '<div style="margin-top:48px;">';
+    html += '<div style="display:flex; align-items:baseline; gap:14px;">';
+    html += '<div style="font-family:\'IBM Plex Serif\',serif; font-size:24px; font-weight:600; color:#20292f;">The shape</div>';
+    html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:12px; color:#97a4b0;">— click a phase to open it</div>';
+    html += '</div>';
+    html += '<div style="margin-top:18px; background:#fff; border:1px solid #e0e6ea; border-radius:14px; padding:8px 24px;">';
+    v.phases.forEach(function (r, idx) {
+      var isLast = idx === v.phases.length - 1;
+      html += '<div class="shape-row" data-action="focus" data-pid="' + r.id + '" style="display:flex; align-items:center; gap:16px; padding:14px 0; cursor:pointer;' + (isLast ? '' : ' border-bottom:1px solid #eef2f5;') + '">';
+      html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:13px; font-weight:600; color:#3f7cb0; width:34px;">' + r.code + '</div>';
+      html += '<div style="flex:1; min-width:0;">';
+      html += '<span style="font-family:\'IBM Plex Serif\',serif; font-size:16.5px; color:#20292f; font-weight:500;">' + esc(r.name) + '</span>';
+      html += '<span style="font-family:\'IBM Plex Mono\',monospace; font-size:12px; color:#97a4b0; margin-left:12px;">' + esc(r.desc) + '</span>';
+      html += '</div>';
+      html += '<div style="width:70px; height:5px; background:#eef2f5; border-radius:3px; overflow:hidden; flex:none;">';
+      html += '<div style="height:100%; background:#3f7cb0; border-radius:3px; width:' + r.barWidth + '; transition:width .4s ease;"></div>';
+      html += '</div>';
+      html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:12px; color:' + r.pctColor + '; width:42px; text-align:right;">' + r.pctLabel + '</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+
+    // ----- Weekly operating rhythm -----
+    html += '<div style="margin-top:48px;">';
+    html += '<div style="font-family:\'IBM Plex Serif\',serif; font-size:24px; font-weight:600; color:#20292f;">Weekly operating rhythm</div>';
+    html += '<div style="font-size:14.5px; color:#6c7a87; margin-top:6px; line-height:1.55;">The Friday demo is the single most important habit. A sabbatical fails by drift; a weekly forcing function is the cure.</div>';
+    html += '<div style="margin-top:20px; background:#fff; border:1px solid #e0e6ea; border-radius:14px; overflow:hidden;">';
+
+    var rhythm = [
+      ["Deep build", "Mornings · 4 days", "The current phase’s main artifact. Phone in another room.", false],
+      ["Research slice", "One full day", "Papers, SDK source, others’ eval harnesses — <em style=\"font-style:italic;\">timeboxed</em>, so it doesn’t become tutorial hell.", false],
+      ["Write / ship", "2–3 afternoons", "Turn the week’s work into a public writeup or repo. Writing is how you find out what you don’t understand.", false],
+      ["Networking thread", "1 afternoon", "One outreach, one community engagement. Thin but never zero — keeps the endgame warm.", false],
+      ["Self-demo + retro", "Friday", "What shipped, what’s now measured, what’s next. Out loud, to a peer if you can find one.", true]
+    ];
+    rhythm.forEach(function (row, idx) {
+      var isLast = idx === rhythm.length - 1;
+      var emphasis = row[3];
+      html += '<div class="rhythm-row" style="display:flex; gap:18px; padding:16px 24px;' + (isLast ? '' : ' border-bottom:1px solid #eef2f5;') + ' align-items:baseline;' + (emphasis ? ' background:#f7fafc;' : '') + '">';
+      html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:13px; font-weight:600; color:' + (emphasis ? '#3f7cb0' : '#20292f') + '; width:150px; flex:none;">' + esc(row[0]) + '</div>';
+      html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:12px; color:#3f7cb0; width:120px; flex:none;">' + esc(row[1]) + '</div>';
+      html += '<div style="font-size:14px; color:' + (emphasis ? '#44515c' : '#5a6772') + '; line-height:1.5; flex:1;' + (emphasis ? ' font-weight:500;' : '') + '">' + row[2] + '</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+
+    // ----- The phases -----
+    html += '<div style="margin-top:54px;">';
+    html += '<div style="font-family:\'IBM Plex Serif\',serif; font-size:24px; font-weight:600; color:#20292f;">The phases</div>';
+    html += '<div style="font-size:14.5px; color:#6c7a87; margin-top:6px; line-height:1.55; margin-bottom:20px;">Check off each step as you finish it. Progress is tracked per phase and across the whole plan.</div>';
+
+    v.phases.forEach(function (p) {
+      html += '<div id="card-' + p.id + '" style="background:#fff; border:1px solid #e0e6ea; border-radius:14px; margin-bottom:16px; overflow:hidden; box-shadow:0 1px 3px rgba(20,40,60,.04);">';
+
+      html += '<div class="phase-head" data-action="expand" data-pid="' + p.id + '" style="display:flex; align-items:center; gap:18px; padding:22px 24px; cursor:pointer;">';
+      html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:13px; font-weight:600; color:#3f7cb0; letter-spacing:.04em; flex:none; width:90px;">PHASE ' + p.code + '</div>';
+      html += '<div style="flex:1; min-width:0;">';
+      html += '<div style="font-family:\'IBM Plex Serif\',serif; font-size:20px; font-weight:600; color:#20292f; line-height:1.2;">' + esc(p.name) + '</div>';
+      html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:11.5px; color:#97a4b0; margin-top:4px; letter-spacing:.02em;">' + esc(p.weeks) + ' · ' + esc(p.desc) + '</div>';
+      html += '</div>';
+      html += '<div style="display:flex; align-items:center; gap:14px; flex:none;">';
+      html += '<div style="width:110px; height:6px; background:#eef2f5; border-radius:3px; overflow:hidden;">';
+      html += '<div style="height:100%; background:#3f7cb0; border-radius:3px; width:' + p.barWidth + '; transition:width .4s ease;"></div>';
+      html += '</div>';
+      html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:12px; color:#6c7a87; width:42px; text-align:right;">' + p.doneCount + '/' + p.total + '</div>';
+      html += '<div style="font-size:12px; color:#b3bdc6; width:14px; text-align:center;">' + p.chevron + '</div>';
+      html += '</div></div>';
+
+      if (p.expanded) {
+        html += '<div style="padding:2px 24px 26px; border-top:1px solid #eef2f5;">';
+        html += '<div style="font-family:\'IBM Plex Serif\',serif; font-style:italic; font-size:16px; color:#3a4751; line-height:1.5; margin:20px 0 4px;">' + esc(p.goal) + '</div>';
+        html += '<div style="font-size:14.5px; color:#5a6772; line-height:1.62; margin-bottom:16px;">' + esc(p.intro) + '</div>';
+
+        p.items.forEach(function (it) {
+          html += '<div class="check-row" data-action="toggle" data-id="' + it.id + '" style="display:flex; gap:13px; align-items:flex-start; cursor:pointer; padding:6px 0;">';
+          html += checkbox(it);
+          html += '<div style="font-size:14.5px; line-height:1.5; color:' + it.labelColor + ';">' + esc(it.label) + '</div>';
+          html += '</div>';
+        });
+
+        if (p.note) {
+          html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:12.5px; color:#8b97a2; line-height:1.55; margin:14px 0 2px; padding:10px 14px; background:#f7f9fb; border-radius:8px;">↳ ' + esc(p.note) + '</div>';
+        }
+
+        html += '<div class="deliv-box" data-action="toggle" data-id="' + p.deliv.id + '" style="display:flex; gap:13px; align-items:flex-start; cursor:pointer; margin-top:16px; padding:15px 17px; background:#f6f9fb; border:1px solid #e4ecf1; border-left:3px solid #3f7cb0; border-radius:8px;">';
+        html += checkbox(p.deliv);
+        html += '<div>';
+        html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:10.5px; letter-spacing:.14em; color:#3f7cb0; font-weight:600; margin-bottom:5px;">DELIVERABLE</div>';
+        html += '<div style="font-size:14.5px; line-height:1.52; color:' + p.deliv.labelColor + ';">' + esc(p.deliv.label) + '</div>';
+        html += '</div></div>';
+
+        html += '</div>';
+      }
+
+      html += '</div>';
+    });
+    html += '</div>';
+
+    // ----- The throughline -----
+    html += '<div style="margin-top:54px; background:#1b242d; border-radius:16px; padding:38px 36px; color:#dbe4ec;">';
+    html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:11px; letter-spacing:.18em; color:#6fa8d4; font-weight:500;">THE THROUGHLINE</div>';
+    html += '<div style="font-family:\'IBM Plex Serif\',serif; font-size:21px; line-height:1.5; margin-top:16px; color:#eaeff4; font-weight:400;">Every phase leans on something you already have — Go, observability depth, TDD/XP instincts, building in public — and points at your one true gap only once you’ve got the measurement scaffolding to evaluate it honestly.</div>';
+    html += '<div style="font-size:14.5px; color:#9fb0bf; line-height:1.6; margin-top:18px;">The output isn’t four toy projects. It’s a connected body of work where <span style="color:#cfdae4;">the eval harness judges the reliable agent judges the fine-tune.</span></div>';
+    html += '</div>';
+
+    // ----- Failure modes / Flex -----
+    html += '<div class="two-col" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:48px; align-items:start;">';
+
+    html += '<div>';
+    html += '<div style="font-family:\'IBM Plex Serif\',serif; font-size:22px; font-weight:600; color:#20292f;">Failure modes</div>';
+    html += '<div style="margin-top:18px; display:flex; flex-direction:column; gap:12px;">';
+    var failures = [
+      ["Tutorial hell", "If you’re following along rather than building your own thing, stop. Timebox the research slice hard."],
+      ["Skipping evals because they’re unglamorous", "They’re the whole point. Do not let Phase 1 get compressed away."],
+      ["Polishing one project forever", "The Friday demo forces forward motion. Ship rough, measure, move."],
+      ["Going dark", "Keep the thin networking thread alive — three months of silence is expensive to restart."],
+      ["Pretending the model project is bigger than it is", "One narrow fine-tune done honestly beats an ambitious one abandoned."]
+    ];
+    failures.forEach(function (f) {
+      html += '<div style="background:#fff; border:1px solid #e0e6ea; border-left:3px solid #c0664f; border-radius:8px; padding:14px 16px;">';
+      html += '<div style="font-size:14.5px; font-weight:600; color:#20292f;">' + esc(f[0]) + '</div>';
+      html += '<div style="font-size:13.5px; color:#6c7a87; line-height:1.5; margin-top:3px;">' + esc(f[1]) + '</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+
+    html += '<div>';
+    html += '<div style="font-family:\'IBM Plex Serif\',serif; font-size:22px; font-weight:600; color:#20292f;">Flex the window</div>';
+    html += '<div style="margin-top:18px; display:flex; flex-direction:column; gap:16px;">';
+    html += '<div style="background:#fff; border:1px solid #e0e6ea; border-radius:10px; padding:18px 20px;">';
+    html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:13px; font-weight:600; color:#3f7cb0; letter-spacing:.04em;">8 WEEKS — COMPRESS</div>';
+    html += '<div style="font-size:14px; color:#5a6772; line-height:1.6; margin-top:10px;">Merge Phase 0 into Phase 1; one fine-tune only in Phase 3; Phase 4 becomes a half-week.</div>';
+    html += '</div>';
+    html += '<div style="background:#fff; border:1px solid #e0e6ea; border-radius:10px; padding:18px 20px;">';
+    html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:13px; font-weight:600; color:#3f7cb0; letter-spacing:.04em;">16 WEEKS — STRETCH</div>';
+    html += '<div style="font-size:14px; color:#5a6772; line-height:1.6; margin-top:10px;">Two extra weeks on Phase 2 (a second, harder agent) and two on Phase 3 (a distillation <em style="font-style:italic;">and</em> a fine-tune, compared).</div>';
+    html += '</div>';
+    html += '<div style="background:#f7fafc; border:1px dashed #c9d6df; border-radius:10px; padding:16px 20px;">';
+    html += '<div style="font-family:\'IBM Plex Mono\',monospace; font-size:12px; color:#8b97a2; line-height:1.6;">Default: ~12 weeks. The phases stay the same shape — only their depth flexes.</div>';
+    html += '</div>';
+    html += '</div></div>';
+
+    html += '</div>'; // two-col
+
+    html += '</div>'; // body container
+
+    document.getElementById("app").innerHTML = html;
+  }
+
+  // ---- Event delegation ---------------------------------------------------
+  document.addEventListener("click", function (e) {
+    var node = e.target;
+    while (node && node !== document.body) {
+      var action = node.getAttribute && node.getAttribute("data-action");
+      if (action) {
+        if (action === "reset") { resetProgress(); return; }
+        if (action === "toggle") { toggleItem(node.getAttribute("data-id"), e); return; }
+        if (action === "expand") { toggleExpand(node.getAttribute("data-pid")); return; }
+        if (action === "focus") { focusPhase(node.getAttribute("data-pid")); return; }
+      }
+      node = node.parentNode;
+    }
+  });
+
+  // ---- Boot ---------------------------------------------------------------
+  load();
+  render();
+})();
+</script>
+</body>
+</html>
