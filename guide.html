@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study & Course Guide — LLM Apps & Agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f3f6f8;
+  --surface: #ffffff;
+  --surface-alt: #f7fafc;
+  --border: #e0e6ea;
+  --border-subtle: #eef2f5;
+  --text: #20292f;
+  --text-2: #44515c;
+  --text-3: #6c7a87;
+  --text-muted: #97a4b0;
+  --accent: #3f7cb0;
+  --accent-bg: #e6f1fb;
+  --accent-border: #b5d4f4;
+  --success: #0f6e56;
+  --success-bg: #e1f5ee;
+  --success-border: #9fe1cb;
+  --pro: #534ab7;
+  --pro-bg: #eeedfe;
+  --pro-border: #afa9ec;
+  --warning: #854f0b;
+  --warning-bg: #faeeda;
+  --warning-border: #fac775;
+  --radius: 8px;
+  --radius-card: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a2028;
+    --surface: #242c36;
+    --surface-alt: #1e262f;
+    --border: #2e3a44;
+    --border-subtle: #283038;
+    --text: #e4ecf2;
+    --text-2: #bcc8d4;
+    --text-3: #8fa3b4;
+    --text-muted: #5f7384;
+    --accent: #6fa8d4;
+    --accent-bg: #0c2a40;
+    --accent-border: #1a4a6a;
+    --success: #5dcaa5;
+    --success-bg: #04342c;
+    --success-border: #0f6e56;
+    --pro: #afa9ec;
+    --pro-bg: #26215c;
+    --pro-border: #534ab7;
+    --warning: #ef9f27;
+    --warning-bg: #412402;
+    --warning-border: #854f0b;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* ── Header ── */
+.header {
+  background: #1b242d;
+  border-bottom: 3px solid #3f7cb0;
+  padding: 42px 28px 38px;
+}
+.header-inner { max-width: 900px; margin: 0 auto; }
+.header-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .22em;
+  color: #6fa8d4;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.header h1 {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 38px;
+  font-weight: 600;
+  color: #eaeff4;
+  line-height: 1.08;
+  letter-spacing: -.01em;
+  margin-bottom: 12px;
+}
+.header-sub {
+  font-size: 15px;
+  color: #aebccb;
+  line-height: 1.55;
+  max-width: 560px;
+}
+.header-links {
+  margin-top: 20px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.header-link {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: #6fa8d4;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.header-link:hover { color: #9cc6e2; text-decoration: underline; }
+.header-link::before { content: '↗'; }
+
+/* ── Nav tabs ── */
+.nav-wrap {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav { max-width: 900px; margin: 0 auto; display: flex; padding: 0 28px; }
+.nav-tab {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-3);
+  padding: 14px 18px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  transition: color .15s, border-color .15s;
+  white-space: nowrap;
+}
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── Panels ── */
+.body { max-width: 900px; margin: 0 auto; padding: 0 28px; }
+.panel { display: none; padding-top: 40px; }
+.panel.active { display: block; }
+
+/* ── Typography ── */
+.panel-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.panel-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 32px; line-height: 1.5; }
+.section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 20px 22px;
+  margin-bottom: 12px;
+}
+.card-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.card-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.card-body { font-size: 13.5px; color: var(--text-2); line-height: 1.65; }
+
+/* ── Badges ── */
+.badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.badge-accent { background: var(--accent-bg); color: var(--accent); }
+.badge-success { background: var(--success-bg); color: var(--success); }
+.badge-pro { background: var(--pro-bg); color: var(--pro); }
+.badge-warning { background: var(--warning-bg); color: var(--warning); }
+.badge-muted { background: var(--surface-alt); color: var(--text-muted); border: 1px solid var(--border); }
+
+/* ── Comparison table ── */
+.compare-wrap { border: 1px solid var(--border); border-radius: var(--radius-card); overflow: hidden; margin-bottom: 14px; }
+.compare-row { display: grid; grid-template-columns: 130px 1fr 1fr 1fr; font-size: 13px; }
+.compare-row + .compare-row { border-top: 1px solid var(--border-subtle); }
+.cr-label {
+  background: var(--surface-alt);
+  padding: 11px 14px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.cr-head {
+  background: var(--surface-alt);
+  padding: 11px 14px;
+  font-weight: 600;
+  font-size: 13px;
+  border-right: 1px solid var(--border-subtle);
+}
+.cr-head:last-child { border-right: none; }
+.cr-cell {
+  padding: 11px 14px;
+  color: var(--text-2);
+  line-height: 1.5;
+  border-right: 1px solid var(--border-subtle);
+}
+.cr-cell:last-child { border-right: none; }
+.cr-cell.accent { color: var(--accent); font-weight: 500; }
+
+/* ── Concept pills ── */
+.pill-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.pill {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--text-2);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* ── Three-col mini-grid ── */
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 12px; }
+.mini-card {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 12px;
+}
+.mini-card-title { font-weight: 600; color: var(--accent); margin-bottom: 4px; }
+.mini-card-body { color: var(--text-3); line-height: 1.5; }
+
+/* ── Domain checklist ── */
+.domain-list { display: flex; flex-direction: column; gap: 0; margin-top: 10px; }
+.domain-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 13.5px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+.domain-item:last-child { border-bottom: none; }
+.domain-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--success-bg);
+  color: var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex: none;
+  margin-top: 2px;
+}
+
+/* ── Callout boxes ── */
+.callout {
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-top: 14px;
+}
+.callout-accent { background: var(--accent-bg); border-left: 3px solid var(--accent); color: var(--text-2); }
+.callout-success { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--text-2); }
+.callout-muted { background: var(--surface-alt); border: 1px solid var(--border); color: var(--text-3); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+.callout strong { color: var(--text); font-weight: 600; }
+
+/* ── Manning banner ── */
+.manning-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.manning-banner::before { content: '📦'; font-size: 14px; }
+
+/* ── Project steps ── */
+.step-list { margin-top: 14px; display: flex; flex-direction: column; gap: 0; }
+.step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.step:last-child { border-bottom: none; }
+.step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  font-family: 'IBM Plex Mono', monospace;
+  margin-top: 1px;
+}
+.step-body { font-size: 13.5px; color: var(--text-2); line-height: 1.55; }
+.step-title { font-weight: 600; color: var(--text); margin-bottom: 2px; }
+
+/* ── Divider ── */
+.divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+/* ── Phase cards ── */
+.phase-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.phase-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--surface-alt);
+  cursor: pointer;
+  transition: background .12s;
+  user-select: none;
+}
+.phase-head:hover { background: var(--border-subtle); }
+.phase-code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: .06em;
+  width: 60px;
+  flex: none;
+}
+.phase-name { font-size: 14.5px; font-weight: 600; flex: 1; }
+.phase-meta {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.phase-chevron { font-size: 12px; color: var(--text-muted); flex: none; transition: transform .2s; }
+.phase-chevron.open { transform: rotate(90deg); }
+
+.phase-body {
+  background: var(--surface);
+  padding: 18px 20px;
+  border-top: 1px solid var(--border);
+  display: none;
+}
+.phase-body.open { display: block; }
+
+.phase-goal {
+  font-family: 'IBM Plex Serif', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--text-2);
+  line-height: 1.6;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  background: var(--accent-bg);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+.task-list { display: flex; flex-direction: column; gap: 0; }
+.task {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 6px 0;
+  font-size: 13.5px;
+  color: var(--text-2);
+  line-height: 1.5;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.task:last-child { border-bottom: none; }
+.task-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex: none;
+  margin-top: 6px;
+}
+.note {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 10px;
+  line-height: 1.55;
+}
+.deliverable {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 12px 14px;
+  margin-top: 14px;
+  font-size: 13.5px;
+  color: var(--text-2);
+  line-height: 1.55;
+}
+.deliverable-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.phase-map {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 10px;
+  line-height: 1.55;
+}
+.phase-map strong { color: var(--text-2); font-weight: 600; }
+
+/* ── Alert rows ── */
+.alert {
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.alert-title { font-size: 13.5px; font-weight: 600; color: var(--warning); margin-bottom: 3px; }
+.alert-body { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+
+/* ── Rhythm table ── */
+.rhythm-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.rhythm-table td { padding: 10px 14px; border-bottom: 1px solid var(--border-subtle); vertical-align: top; color: var(--text-2); }
+.rhythm-table td:first-child { font-weight: 600; color: var(--text); white-space: nowrap; width: 140px; }
+.rhythm-table td:nth-child(2) { color: var(--accent); white-space: nowrap; width: 130px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+.rhythm-table tr:last-child td { border-bottom: none; }
+
+/* ── Two col ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 28px; }
+
+/* ── Back link ── */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: #6fa8d4;
+  text-decoration: none;
+  margin-top: 24px;
+}
+.back-link:hover { color: #9cc6e2; }
+
+@media (max-width: 680px) {
+  .compare-row { grid-template-columns: 1fr; }
+  .cr-label { display: none; }
+  .cr-head { border-right: none; border-bottom: 1px solid var(--border-subtle); }
+  .cr-cell { border-right: none; border-bottom: 1px solid var(--border-subtle); }
+  .three-col { grid-template-columns: 1fr; }
+  .two-col { grid-template-columns: 1fr; }
+  .header h1 { font-size: 28px; }
+  .nav-tab { padding: 12px 12px; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="header-eyebrow">Senior Track · LLM Apps &amp; Agents</div>
+    <h1>Study &amp; Course Guide</h1>
+    <p class="header-sub">ReAct agent frameworks, AWS ML certification prep, and Manning liveProjects mapped to the deep-build plan.</p>
+    <div class="header-links">
+      <a class="header-link" href="index.html">Deep-Build Plan tracker</a>
+      <a class="header-link" href="https://github.com/malston/llm-agent-build-plan" target="_blank" rel="noopener">GitHub repo</a>
+    </div>
+  </div>
+</header>
+
+<div class="nav-wrap">
+  <nav class="nav" role="tablist" aria-label="Guide sections">
+    <button class="nav-tab active" role="tab" aria-selected="true"  aria-controls="study"     onclick="showTab('study',this)">Study guide</button>
+    <button class="nav-tab"        role="tab" aria-selected="false" aria-controls="courses"   onclick="showTab('courses',this)">Course guide</button>
+    <button class="nav-tab"        role="tab" aria-selected="false" aria-controls="deepbuild" onclick="showTab('deepbuild',this)">Deep-build plan</button>
+  </nav>
+</div>
+
+<main class="body">
+
+<!-- ═══════════════════════════════════════════════
+     STUDY GUIDE
+════════════════════════════════════════════════ -->
+<section id="study" class="panel active" role="tabpanel">
+  <h2 class="panel-title">ReAct agent frameworks</h2>
+  <p class="panel-sub">The three major frameworks for building agents that follow the Reason + Act loop</p>
+
+  <div class="section-label" style="margin-bottom:10px">Framework comparison</div>
+  <div class="compare-wrap" style="margin-bottom:28px">
+    <div class="compare-row">
+      <div class="cr-label"></div>
+      <div class="cr-head">LangGraph</div>
+      <div class="cr-head">Google ADK</div>
+      <div class="cr-head">SmolAgents</div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label">Abstraction</div>
+      <div class="cr-cell">Graph / state machine — nodes + edges, explicit control flow</div>
+      <div class="cr-cell">Agent-first SDK with built-in tool execution and evaluation</div>
+      <div class="cr-cell">Minimal; model writes executable Python as actions</div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label">Model coupling</div>
+      <div class="cr-cell">Model-agnostic via LangChain integrations</div>
+      <div class="cr-cell">Gemini-first, other models supported</div>
+      <div class="cr-cell">Model-agnostic; HF Hub + any OpenAI-compatible API</div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label">State</div>
+      <div class="cr-cell">Explicit typed state schema; checkpointing built in</div>
+      <div class="cr-cell">Session-level state via ADK sessions API</div>
+      <div class="cr-cell">Minimal; lives in the Python interpreter the model runs</div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label">Multi-agent</div>
+      <div class="cr-cell">First-class: supervisor, parallel, subgraph patterns</div>
+      <div class="cr-cell">Built-in: coordinator + worker topology</div>
+      <div class="cr-cell">ManagedAgent composable; A2A-compatible via JSON tooling</div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label">Observability</div>
+      <div class="cr-cell">LangSmith tracing; full graph replay</div>
+      <div class="cr-cell">Google Cloud Trace + ADK eval suite</div>
+      <div class="cr-cell">Lightweight; integrates with LangSmith or custom loggers</div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label">Best for</div>
+      <div class="cr-cell">Complex workflows needing deterministic branching and HITL</div>
+      <div class="cr-cell">GCP-native deployments; Gemini or Vertex AI teams</div>
+      <div class="cr-cell">Research + low-boilerplate agents; code execution tasks</div>
+    </div>
+    <div class="compare-row">
+      <div class="cr-label">Relevance</div>
+      <div class="cr-cell accent">High — workshop curriculum, MCP work, Anthropic SDK</div>
+      <div class="cr-cell">Medium — GCP/Vertex clients; not Chipply-relevant</div>
+      <div class="cr-cell">Medium — eval harnesses, lightweight research agents</div>
+    </div>
+  </div>
+
+  <div class="section-label">LangGraph</div>
+  <div class="card" style="margin-bottom:20px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span class="badge badge-success">Stateful graph execution</span>
+    </div>
+    <p class="card-body">Builds agents as directed graphs where nodes are functions or LLM calls and edges are control-flow conditions. The state object is typed and flows through every node; checkpointers (SQLite, Postgres, Redis) persist state across runs for long-lived or human-in-the-loop workflows. The streaming API emits state deltas at each node, which maps cleanly to your OpenTelemetry instrumentation work.</p>
+    <div class="pill-grid">
+      <span class="pill">StateGraph</span>
+      <span class="pill">TypedDict state</span>
+      <span class="pill">Conditional edges</span>
+      <span class="pill">Checkpointers</span>
+      <span class="pill">ToolNode</span>
+      <span class="pill">Subgraphs</span>
+      <span class="pill">Interrupt / HITL</span>
+      <span class="pill">LangSmith tracing</span>
+      <span class="pill">add_messages reducer</span>
+      <span class="pill">Supervisor pattern</span>
+    </div>
+  </div>
+
+  <div class="section-label">Google ADK (Agent Development Kit)</div>
+  <div class="card" style="margin-bottom:20px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span class="badge badge-accent">Google-native agent SDK</span>
+    </div>
+    <p class="card-body">ADK is Google's opinionated SDK for building agents on top of Gemini models and Vertex AI. It ships with a built-in evaluation framework, multi-agent orchestration patterns (sequential, parallel, loop), tool integration via function calling, and deployment to Vertex AI Agent Engine or Cloud Run. The ADK runner handles the ReAct loop internally — you define agents, tools, and routing logic, not the loop itself.</p>
+    <div class="pill-grid">
+      <span class="pill">Agent / LlmAgent</span>
+      <span class="pill">SequentialAgent</span>
+      <span class="pill">ParallelAgent</span>
+      <span class="pill">LoopAgent</span>
+      <span class="pill">Tool / FunctionTool</span>
+      <span class="pill">Session / State</span>
+      <span class="pill">Vertex AI deployment</span>
+      <span class="pill">Eval dataset</span>
+      <span class="pill">Artifact service</span>
+      <span class="pill">Memory service</span>
+    </div>
+  </div>
+
+  <div class="section-label">HuggingFace SmolAgents</div>
+  <div class="card" style="margin-bottom:28px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span class="badge badge-warning">Code-first minimal agents</span>
+    </div>
+    <p class="card-body">SmolAgents takes a radically minimal approach: the model generates executable Python code as its action output (CodeAgent), rather than JSON tool calls. This reduces token overhead and gives the model full Python expressiveness. A ToolCallingAgent variant provides the conventional JSON tool-call loop. Ships with a ManagedAgent wrapper for multi-agent composition and a GradioUI for quick demos.</p>
+    <div class="pill-grid">
+      <span class="pill">CodeAgent</span>
+      <span class="pill">ToolCallingAgent</span>
+      <span class="pill">ManagedAgent</span>
+      <span class="pill">Tool decorator</span>
+      <span class="pill">PythonInterpreter sandbox</span>
+      <span class="pill">HF Hub models</span>
+      <span class="pill">GradioUI</span>
+      <span class="pill">OpenAI-compatible</span>
+    </div>
+  </div>
+
+  <div class="section-label">How each implements the ReAct loop</div>
+  <div class="three-col" style="margin-bottom:0">
+    <div class="mini-card">
+      <div class="mini-card-title">LangGraph</div>
+      <div class="mini-card-body">Explicit node for "call model", conditional edge to "call tools" or END, ToolNode handles execution, loops back via edge. You own the loop shape.</div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-card-title">Google ADK</div>
+      <div class="mini-card-body">ADK Runner owns the loop; LlmAgent calls Gemini with tool schemas, routes results through registered tools, feeds observation back to model.</div>
+    </div>
+    <div class="mini-card">
+      <div class="mini-card-title">SmolAgents</div>
+      <div class="mini-card-body">agent.run() owns the loop; model emits Python, PythonInterpreter executes it, stdout/return value captured as observation.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     COURSE GUIDE
+════════════════════════════════════════════════ -->
+<section id="courses" class="panel" role="tabpanel">
+  <h2 class="panel-title">Course guide</h2>
+  <p class="panel-sub">Tracked courses and live projects mapped to your current goals</p>
+
+  <div class="section-label">AWS Certified Machine Learning Engineer Associate (MLA-C01)</div>
+  <div class="card" style="border-color: var(--accent-border)">
+    <div class="card-title">AWS Certified Machine Learning Engineer Associate: Hands On!</div>
+    <div class="card-meta">
+      <span style="font-size:13px;color:var(--text-muted)">Frank Kane + Stéphane Maarek · Udemy</span>
+      <span class="badge badge-accent">Bestseller</span>
+      <span class="badge badge-muted">4.6★ · 51k students</span>
+      <span class="badge badge-muted">299 lectures · ~24h</span>
+    </div>
+    <p class="card-body">Kane spent 9 years at Amazon as a senior ML engineer and holds 26 ML patents; he passed MLA-C01 himself. Maarek covers the AWS infrastructure and deployment side. Recent cohorts are passing on first attempt in 1–2 weeks of prep.</p>
+    <div class="section-label" style="margin-top:16px;margin-bottom:8px">Domain coverage</div>
+    <div class="domain-list">
+      <div class="domain-item"><div class="domain-check">✓</div><div><strong>Data ingestion and storage</strong> — S3, Kinesis, MSK, Glue, Athena, EFS, FSx, EBS. Heavy hands-on with Kinesis troubleshooting, partitioning, and Firehose transforms.</div></div>
+      <div class="domain-item"><div class="domain-check">✓</div><div><strong>Feature engineering</strong> — EMR + Spark, SageMaker Data Wrangler, missing data imputation, outlier handling, imbalanced datasets (SMOTE), PCA, one-hot encoding.</div></div>
+      <div class="domain-item"><div class="domain-check">✓</div><div><strong>SageMaker built-in algorithms</strong> — XGBoost, LightGBM, DeepAR, BlazingText, Linear Learner, K-Means, Random Cut Forest, Object Detection, Factorization Machines, IP Insights.</div></div>
+      <div class="domain-item"><div class="domain-check">✓</div><div><strong>Model training and tuning</strong> — deep learning internals (CNNs, RNNs, LSTMs), hyperparameter tuning with AMT, SageMaker Debugger, distributed training, model parallelism, EFA.</div></div>
+      <div class="domain-item"><div class="domain-check">✓</div><div><strong>Generative AI fundamentals</strong> — transformer internals, attention, tokenization, fine-tuning, SageMaker JumpStart with HuggingFace models.</div></div>
+      <div class="domain-item"><div class="domain-check">✓</div><div><strong>Amazon Bedrock</strong> — foundation models, RAG + knowledge bases, vector stores, guardrails, Bedrock Agents with action groups. Hands-on lab builds a full agent with OpenSearch.</div></div>
+      <div class="domain-item"><div class="domain-check">✓</div><div><strong>MLOps</strong> — SageMaker Pipelines, Model Registry, Model Monitor, blue-green and canary deployments, ECS/EKS/Fargate, CDK, CloudFormation, EventBridge, Step Functions, MWAA, Lake Formation.</div></div>
+      <div class="domain-item"><div class="domain-check">✓</div><div><strong>Security</strong> — IAM, KMS, VPC, SageMaker encryption, Macie, Secrets Manager, WAF, Shield, PrivateLink. Strong section; exam is heavy on security scenarios.</div></div>
+      <div class="domain-item"><div class="domain-check">✓</div><div><strong>Managed AI services</strong> — Comprehend, Translate, Transcribe, Polly, Rekognition, Lex, Textract, Kendra, Personalize, Augmented AI (A2I), Q Business, Q Developer.</div></div>
+    </div>
+    <div class="callout callout-success" style="margin-top:14px">
+      <strong>Why this is the right call</strong> — your Terraform, Kubernetes, and AWS platform background means the MLOps and security sections will move fast. The non-obvious gaps are SageMaker built-in algorithms (the exam is specific about hyperparameters and input formats) and the managed AI services catalogue. The 110 quiz questions + practice exam are where you'll find which domains need reps, not more video.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="manning-banner">Manning liveProjects — 90-day book/video access included · complete in your local dev environment</div>
+
+  <div class="section-label">Manning liveProject — primary recommendation</div>
+  <div class="card" style="border-color:var(--accent-border);margin-bottom:16px">
+    <div class="card-title">Building an Agentic RAG Application</div>
+    <div class="card-meta">
+      <span style="font-size:13px;color:var(--text-muted)">Matteus Tanha · Manning</span>
+      <span class="badge badge-muted">4 projects</span>
+      <span class="badge badge-muted">4 weeks · 5–7h/week</span>
+      <span class="badge badge-muted">$35</span>
+      <span class="badge badge-success">Phase 1 + Phase 2</span>
+    </div>
+    <p class="card-body">The strongest match in the catalog for your current work. The retrieval evaluation project in the middle is rare — most RAG courses skip measurement entirely. That project maps directly to Phase 1 of the deep-build plan, and the final LangGraph agentic RAG system is a clean Phase 2 artifact you can instrument with your existing observability stack.</p>
+    <div class="step-list">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body"><div class="step-title">Vector Database and Document Retrieval</div>Embed documents, stand up a vector store, build basic semantic retrieval. Foundational setup for everything that follows.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body"><div class="step-title">Hybrid Search and Retrieval Evaluation</div>Add BM25 + dense hybrid retrieval, then build an eval harness to measure retrieval quality. This is the Phase 1 deliverable — measurement before you build the agent layer.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body"><div class="step-title">Prompt Engineering for Context-Aware Q&A</div>Tune prompts against your retrieval eval results — exactly the measure-then-build loop the deep-build plan calls for.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body"><div class="step-title">Building an Agentic RAG System with LangGraph</div>Router agent + retriever agent + LangGraph orchestration. Directly extends the LangGraph study guide section and produces a Phase 2 portfolio artifact.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Manning liveProject — Phase 3 (go below the API)</div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">Build Your LLM and Fine-Tune it for Real Tasks</div>
+    <div class="card-meta">
+      <span style="font-size:13px;color:var(--text-muted)">Tobias Zwingmann · Manning</span>
+      <span class="badge badge-muted">3 projects</span>
+      <span class="badge badge-muted">3 weeks · 4–6h/week</span>
+      <span class="badge badge-muted">$45</span>
+      <span class="badge badge-pro">Phase 3</span>
+    </div>
+    <p class="card-body">This is the "go below the API" phase project. Building from scratch first forces you to understand what fine-tuning actually changes, so the comparison in project 3 is honest rather than impressionistic. The code generation fine-tune is a concrete Chipply/AI Cloud Engineer artifact — a fine-tuned model for infrastructure code generation is a real deliverable to show.</p>
+    <div class="step-list">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body"><div class="step-title">Build Your First LLM from Scratch</div>Tokenization, attention, transformer block, training loop. Closes the conceptual gap the Anthropic Fellows ML Systems track requires — and you'll have working code, not slides.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body"><div class="step-title">Fine-Tune an LLM for Text Classification</div>Take a base model, fine-tune on a classification task, evaluate the delta. This is the narrow, honest fine-tune the deep-build plan calls for.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body"><div class="step-title">Fine-Tune an LLM for Code Generation</div>Fine-tune on code, compare against prompted large model using your Phase 1 eval harness. Cost, latency, quality — with numbers. This is the Phase 3 deliverable.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Manning liveProject — Phase 1 companion (fast cadence)</div>
+  <div class="card" style="margin-bottom:28px">
+    <div class="card-title">From Prompts to an Agentic System</div>
+    <div class="card-meta">
+      <span style="font-size:13px;color:var(--text-muted)">Jeremie Charlet · Manning</span>
+      <span class="badge badge-muted">3 projects</span>
+      <span class="badge badge-muted">3 weeks · 2–8h/week</span>
+      <span class="badge badge-muted">$33</span>
+      <span class="badge badge-accent">Phase 1</span>
+    </div>
+    <p class="card-body">Lighter than the RAG series but faster — fits the Friday-demo weekly cadence. The progression from persona + skills → knowledge base → reasoning and workflow agent mirrors the kind of activation work you deliver at Forgd, so this doubles as structured practice for workshop delivery and produces a public artifact quickly.</p>
+    <div class="step-list">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body"><div class="step-title">Designing Persona and Core Skills</div>Prompt engineering for consistent agent behavior, tool definitions, system prompt architecture.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body"><div class="step-title">Add Curated Knowledge Base Search</div>RAG integration into the agent — retrieval as a tool the agent decides to call.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body"><div class="step-title">Build a Reasoning and Workflow Agent</div>Multi-step planning, tool chaining, workflow orchestration. End state is a working agent you can instrument with your Phase 1 eval harness.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Other supplementary resources</div>
+  <div class="card" style="margin-bottom:10px">
+    <div class="card-title">Evaluating and Debugging Generative AI</div>
+    <div class="card-meta">
+      <span style="font-size:13px;color:var(--text-muted)">Anita Jhunjhunwala + Carey Phelps · O'Reilly / DeepLearning.AI</span>
+      <span class="badge badge-muted">~4h</span>
+      <span class="badge badge-accent">Phase 1</span>
+    </div>
+    <p class="card-body">Eval harnesses, LLM-as-judge, W&B logging, drift detection. Closes the empirical artifact gap for the Anthropic Fellows application and pairs directly with the retrieval eval project in the Manning RAG series.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">LLM Engineer's Handbook</div>
+    <div class="card-meta">
+      <span style="font-size:13px;color:var(--text-muted)">Paul Iusztin + Maxime Labonne · Manning</span>
+      <span class="badge badge-muted">MEAP 2025</span>
+      <span class="badge badge-pro">Phase 3</span>
+    </div>
+    <p class="card-body">Fine-tuning, RLHF, RAG pipelines, and production deployment from an engineering-first perspective. Strong companion to the Build Your LLM liveProject for Phase 3 depth.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     DEEP-BUILD PLAN
+════════════════════════════════════════════════ -->
+<section id="deepbuild" class="panel" role="tabpanel">
+  <h2 class="panel-title">Deep-build plan</h2>
+  <p class="panel-sub">12-week senior track for going from <em>ships agents</em> to <em>rigorously good</em> — <a href="index.html" style="color:var(--accent)">back to the tracker →</a></p>
+
+  <div class="two-col">
+    <div class="card" style="margin-bottom:0">
+      <div class="section-label">How to read this</div>
+      <p style="font-size:13.5px;color:var(--text-2);line-height:1.65">This is not a curriculum. You need reps with feedback on the parts most people skip. Each phase ends in something shippable. If a week feels like coursework, you're off the rails.</p>
+    </div>
+    <div class="card" style="margin-bottom:0;background:var(--accent-bg);border-color:var(--accent-border)">
+      <div class="section-label" style="color:var(--accent)">The one move</div>
+      <p style="font-size:13.5px;color:var(--text-2);line-height:1.65">Make everything <strong style="color:var(--accent)">measurable</strong> first, then build hard things <strong style="color:var(--accent)">under measurement</strong>, then go <strong style="color:var(--accent)">below the API</strong>.</p>
+    </div>
+  </div>
+
+  <div class="section-label" style="margin-top:28px">Weekly operating rhythm</div>
+  <div class="card" style="padding:0;overflow:hidden;margin-bottom:28px">
+    <table class="rhythm-table">
+      <tr><td>Deep build</td><td>Mon–Thu mornings</td><td style="color:var(--text-2)">The current phase's main artifact. Phone in another room.</td></tr>
+      <tr><td>Research slice</td><td>One full day</td><td style="color:var(--text-2)">Papers, SDK source, others' eval harnesses — timeboxed so it doesn't become tutorial hell.</td></tr>
+      <tr><td>Write / ship</td><td>2–3 afternoons</td><td style="color:var(--text-2)">Turn the week's work into a public writeup or repo. Writing is how you find out what you don't understand.</td></tr>
+      <tr><td>Networking</td><td>1 afternoon</td><td style="color:var(--text-2)">One outreach, one community engagement. Thin but never zero.</td></tr>
+      <tr style="background:var(--accent-bg)"><td style="color:var(--accent)">Self-demo + retro</td><td style="color:var(--accent)">Friday</td><td style="color:var(--text-2);font-weight:600">What shipped, what's now measured, what's next. Out loud, to a peer if you can find one.</td></tr>
+    </table>
+  </div>
+
+  <div class="section-label">The phases</div>
+
+  <div class="phase-card">
+    <div class="phase-head" onclick="togglePhase('p0')">
+      <div class="phase-code">PHASE 00</div>
+      <div class="phase-name">Measure what you already have</div>
+      <div class="phase-meta">Week 1 · baseline + brutal honesty</div>
+      <div class="phase-chevron" id="chev-p0">▶</div>
+    </div>
+    <div class="phase-body" id="p0">
+      <div class="phase-goal">Establish the discipline immediately, on code that already exists, before building anything new.</div>
+      <div class="task-list">
+        <div class="task"><div class="task-dot"></div><div>Take an agent you've already written</div></div>
+        <div class="task"><div class="task-dot"></div><div>Wrap it in a real eval harness — even a crude one</div></div>
+        <div class="task"><div class="task-dot"></div><div>Define what "task completed" means for it</div></div>
+        <div class="task"><div class="task-dot"></div><div>Assemble 20–30 real cases and measure</div></div>
+        <div class="task"><div class="task-dot"></div><div>Resist the urge to fix anything yet</div></div>
+      </div>
+      <div class="deliverable"><div class="deliverable-label">Deliverable</div>An eval suite over an existing agent + a short writeup: "what I learned my agent actually does when I measured it instead of vibing it."</div>
+    </div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-head" onclick="togglePhase('p1')">
+      <div class="phase-code">PHASE 01</div>
+      <div class="phase-name">Evals as a first-class discipline</div>
+      <div class="phase-meta">Weeks 2–4 · measurement you build with</div>
+      <div class="phase-chevron" id="chev-p1">▶</div>
+    </div>
+    <div class="phase-body" id="p1">
+      <div class="phase-goal">Make measurement something you build with, not bolt on — TDD for nondeterministic systems.</div>
+      <div class="task-list">
+        <div class="task"><div class="task-dot"></div><div>Golden datasets</div></div>
+        <div class="task"><div class="task-dot"></div><div>LLM-as-judge with calibrated rubrics</div></div>
+        <div class="task"><div class="task-dot"></div><div>Regression suites</div></div>
+        <div class="task"><div class="task-dot"></div><div>Task-completion and tool-call-correctness metrics</div></div>
+        <div class="task"><div class="task-dot"></div><div>Drift detection across model/prompt changes</div></div>
+      </div>
+      <div class="note">↳ Consider building the harness in Go — most eval tooling is Python, so a clean Go harness is differentiated and plays to your strength.</div>
+      <div class="phase-map"><strong>Manning liveProjects for this phase:</strong> Building an Agentic RAG Application (project 2 — retrieval eval) · From Prompts to an Agentic System · Evaluating and Debugging GenAI (O'Reilly)</div>
+      <div class="deliverable"><div class="deliverable-label">Deliverable</div>An open-sourced eval harness + a writeup on judging nondeterministic systems. The most portable thing you'll make all quarter.</div>
+    </div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-head" onclick="togglePhase('p2')">
+      <div class="phase-code">PHASE 02</div>
+      <div class="phase-name">Build reliably, under measurement</div>
+      <div class="phase-meta">Weeks 5–8 · demo → dependable</div>
+      <div class="phase-chevron" id="chev-p2">▶</div>
+    </div>
+    <div class="phase-body" id="p2">
+      <div class="phase-goal">The leap from demo to dependable. Pick one genuinely ambitious agent and build it the hard way.</div>
+      <div class="task-list">
+        <div class="task"><div class="task-dot"></div><div>Failure recovery and retries</div></div>
+        <div class="task"><div class="task-dot"></div><div>Context and memory management</div></div>
+        <div class="task"><div class="task-dot"></div><div>Cost and latency budgets</div></div>
+        <div class="task"><div class="task-dot"></div><div>Graceful degradation</div></div>
+        <div class="task"><div class="task-dot"></div><div>The judgment of when not to reach for an agent</div></div>
+        <div class="task"><div class="task-dot"></div><div>Wire in observability — OpenTelemetry, Wavefront, Grafana</div></div>
+      </div>
+      <div class="note">↳ Your observability depth is massive leverage almost no application-layer AI person has.</div>
+      <div class="phase-map"><strong>Manning liveProject for this phase:</strong> Building an Agentic RAG Application (projects 3–4 — the LangGraph agentic RAG system)</div>
+      <div class="deliverable"><div class="deliverable-label">Deliverable</div>A dependable agent + an observability dashboard showing its real behavior under load and cost + a writeup on the demo→dependable gap.</div>
+    </div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-head" onclick="togglePhase('p3')">
+      <div class="phase-code">PHASE 03</div>
+      <div class="phase-name">Go below the API</div>
+      <div class="phase-meta">Weeks 9–11 · one model-level project</div>
+      <div class="phase-chevron" id="chev-p3">▶</div>
+    </div>
+    <div class="phase-body" id="p3">
+      <div class="phase-goal">Close your one real gap. Make "when is customization worth it?" hands-on instead of theoretical.</div>
+      <div class="task-list">
+        <div class="task"><div class="task-dot"></div><div>One fine-tune or distillation, end to end, on a narrow real task</div></div>
+        <div class="task"><div class="task-dot"></div><div>Rent GPU rather than fighting the homelab for it</div></div>
+        <div class="task"><div class="task-dot"></div><div>Compare fine-tuned small vs prompted large — cost, latency, quality</div></div>
+        <div class="task"><div class="task-dot"></div><div>Adjudicate the comparison with your own Phase 1 harness</div></div>
+      </div>
+      <div class="note">↳ Your eval framework adjudicating your model project — that is the senior move.</div>
+      <div class="phase-map"><strong>Manning liveProject for this phase:</strong> Build Your LLM and Fine-Tune it for Real Tasks — all three projects, with project 3 (code gen fine-tune) as the deliverable</div>
+      <div class="deliverable"><div class="deliverable-label">Deliverable</div>The trained model + the comparison + a writeup: "when customization actually beats prompting, with numbers."</div>
+    </div>
+  </div>
+
+  <div class="phase-card">
+    <div class="phase-head" onclick="togglePhase('p4')">
+      <div class="phase-code">PHASE 04</div>
+      <div class="phase-name">Synthesize + ship the narrative</div>
+      <div class="phase-meta">Week 12 · proof-of-work</div>
+      <div class="phase-chevron" id="chev-p4">▶</div>
+    </div>
+    <div class="phase-body" id="p4">
+      <div class="phase-goal">Pull it into one coherent story and a public artifact.</div>
+      <div class="task-list">
+        <div class="task"><div class="task-dot"></div><div>Consolidate the four writeups and repos</div></div>
+        <div class="task"><div class="task-dot"></div><div>Build a single proof-of-work — a talk, a wiki section, or a linked collection</div></div>
+        <div class="task"><div class="task-dot"></div><div>Answer: what does AI-engineering depth look like for a senior platform engineer?</div></div>
+      </div>
+      <div class="deliverable"><div class="deliverable-label">Deliverable</div>One public artifact you'd be comfortable sending to a hiring manager or a conference CFP.</div>
+    </div>
+  </div>
+
+  <div class="section-label" style="margin-top:28px">Failure modes to avoid</div>
+  <div class="alert"><div class="alert-title">Tutorial hell</div><div class="alert-body">If you're following along rather than building your own thing, stop. Timebox the research slice hard.</div></div>
+  <div class="alert"><div class="alert-title">Skipping evals because they're unglamorous</div><div class="alert-body">They're the whole point. Do not let Phase 1 get compressed away.</div></div>
+  <div class="alert"><div class="alert-title">Polishing one project forever</div><div class="alert-body">The Friday demo forces forward motion. Ship rough, measure, move.</div></div>
+  <div class="alert"><div class="alert-title">Going dark</div><div class="alert-body">Keep the thin networking thread alive — three months of silence is expensive to restart.</div></div>
+  <div class="alert"><div class="alert-title">Pretending the model project is bigger than it is</div><div class="alert-body">One narrow fine-tune done honestly beats an ambitious one abandoned.</div></div>
+</section>
+
+</main>
+
+<script>
+function showTab(id, el) {
+  document.querySelectorAll('.nav-tab').forEach(function(t) {
+    t.classList.remove('active');
+    t.setAttribute('aria-selected', 'false');
+  });
+  document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  el.setAttribute('aria-selected', 'true');
+}
+
+function togglePhase(id) {
+  var body = document.getElementById(id);
+  var chev = document.getElementById('chev-' + id);
+  var open = body.classList.toggle('open');
+  if (chev) {
+    chev.textContent = open ? '▼' : '▶';
+    chev.classList.toggle('open', open);
+  }
+}
+</script>
+</body>
+</html>
